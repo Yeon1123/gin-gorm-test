@@ -5,10 +5,10 @@ import (
 )
 
 // Spring Boot에서 생성한 json - 객체 간 변환도 요렇게 가능하다!
-type User struct {
+// 생성시 자동으로 snake_case 되도록 설정
+type MemberGo struct {
 	gorm.Model
-	Id       int    `json:"member_id" gorm:"primary_key"`
-	Name     string `json:"member_name"`
-	Email    string `json:"member_email"`
-	Password string `json:"member_password"`
+	MemberName     string `json:"member_name"`
+	MemberEmail    string `json:"member_email"`
+	MemberPassword string `json:"member_password"`
 }
