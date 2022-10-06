@@ -6,6 +6,14 @@ import (
 	"github.com/yujy/gin-gorm-rest/models"
 )
 
+// ShowAccount godoc
+// @Summary      Show all users
+// @Description  Get user list
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Success      200  {array} models.MemberGo
+// @Router       / [get]
 func GetUsers(c *gin.Context) {
 	users := []models.MemberGo{}
 	config.DB.Find(&users)
