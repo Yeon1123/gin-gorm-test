@@ -6,12 +6,10 @@ import (
 	"github.com/yujy/gin-gorm-rest/models"
 )
 
-// get user
 func GetUsers(c *gin.Context) {
 	users := []models.MemberGo{}
 	config.DB.Find(&users)
 	c.JSON(200, users)
-	// c.String(200, "Hello world!")
 }
 
 func CreateUser(c *gin.Context) {
