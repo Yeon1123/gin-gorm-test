@@ -44,50 +44,83 @@ func UpdateUser(c *gin.Context) {
 	c.JSON(200, &user)
 }
 
+// ShowAccount godoc
+// @Summary      Create User
+// @Description  Create a new user account
+// @Tags         accounts
+// @Accept       json
+// @Produce      json
+// @Param 		 request body models.MemberInfo true "request member"
+// @Success      201 {object} models.MemberInfo
+// @Router       /signup [post]
 func Signup(c *gin.Context) {
-	var newUser models.MemberGo
+	var newUserInfo models.MemberInfo
+	var memberGo models.MemberGo
 
-	if err := c.BindJSON(&newUser); err != nil {
+	if err := c.BindJSON(&newUserInfo); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": err.Error()})
 		return
 	}
 
 	//이메일 중복검사
-	result := config.DB.Find(&newUser, "member_email=?", newUser.MemberInfo.MemberPassword)
-
+	result := config.DB.Find(&memberGo, "member_email=?", newUserInfo.MemberEmail)
 	if result.RowsAffected > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "Email already exists"})
 		return
 	}
 
 	//비밀번호 암호화
-	hashpw, err := HashPassword(newUser.MemberInfo.MemberPassword)
+	hashpw, err := hashPassword(newUserInfo.MemberPassword)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Email already exists"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "Server Error"})
 		return
 	}
 
-	newUser.MemberInfo.MemberPassword = hashpw
+	memberGo.MemberInfo = newUserInfo
+	memberGo.MemberInfo.MemberPassword = hashpw
 
-	if err := CreateUser(newUser); err.Error != nil {
+	if err := CreateUser(memberGo); err.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"message": "Error occurred creating user"})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": newUser.MemberInfo.MemberName})
+	c.JSON(http.StatusCreated, memberGo.MemberInfo)
 }
 
 // 암호화 로직
-func HashPassword(password string) (string, error) {
+func hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	return string(bytes), err
 }
 
-func CheckPasswordHash(hashVal, userPw string) bool {
+func checkPasswordHash(hashVal, userPw string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashVal), []byte(userPw))
 	if err != nil {
 		return false
 	} else {
 		return true
 	}
+}
+
+func SignIn(c *gin.Context) {
+	requestUser := new(models.MemberInfo)
+	dbUser := new(models.MemberGo)
+
+	if err := c.BindJSON(&requestUser); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad Request"})
+		return
+	}
+
+	result := config.DB.Find(&dbUser, "member_email=?", requestUser.MemberEmail)
+	if result.RowsAffected <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Email not found"})
+		return
+	}
+
+	if !checkPasswordHash(dbUser.MemberInfo.MemberPassword, requestUser.MemberPassword) {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Password does not match"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dbUser.MemberInfo)
 }

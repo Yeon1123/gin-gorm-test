@@ -16,7 +16,7 @@ type MemberGo struct {
 }
 
 type MemberInfo struct {
-	MemberName     string `json:"member_name"`
-	MemberEmail    string `json:"member_email"`
-	MemberPassword string `json:"member_password"`
+	MemberName     string `json:"member_name"  example:"yujy"`
+	MemberEmail    string `json:"member_email" example:"yujy0302@gmail.com"`
+	MemberPassword string `json:"member_password" example:"HashedPassword"`
 }
